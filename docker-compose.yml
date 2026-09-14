@@ -30,6 +30,9 @@ services:
     stop_grace_period: 30s
     ports:
       - "${WECHAT_AI_PORT:-8787}:8787"
+    extra_hosts:
+      # 访问宿主机 Redis / CPA (CLI Proxy on :8317)
+      - "host.docker.internal:host-gateway"
     env_file:
       - .env
     environment:
