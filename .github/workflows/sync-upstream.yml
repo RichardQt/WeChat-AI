@@ -1,0 +1,40 @@
+name: Sync Upstream
+
+permissions:
+  contents: write
+  workflows: write
+
+on:
+  schedule:
+    # 每天 UTC 00:00 (北京时间 08:00) 定时自动同步
+    - cron: '0 0 * * *'
+  workflow_dispatch: # 支持在 GitHub Actions 页面手动点击运行
+
+jobs:
+  sync_with_upstream:
+    name: Sync latest commits from upstream repo
+    runs-on: ubuntu-latest
+    if: github.repository == 'RichardQt/WeChat-AI'
+
+    steps:
+      - name: Checkout target repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Sync upstream changes
+        id: sync
+        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.1
+        with:
+          upstream_sync_repo: SMNETSTUDIO/WeChat-AI
+          upstream_sync_branch: master
+          target_sync_branch: master
+          target_repo_token: ${{ secrets.GITHUB_TOKEN }}
+          test_mode: false
+
+      - name: Check sync status
+        if: failure()
+        run: |
+          echo "::error::自动同步遇到冲突或失败，请前往仓库手动排查合并。"
+          exit 1
